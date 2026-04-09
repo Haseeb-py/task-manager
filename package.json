@@ -1,0 +1,22 @@
+{
+  "name": "task-manager-app",
+  "version": "1.0.0",
+  "description": "Simple full-stack task manager using Node.js, Express, MongoDB, and vanilla JavaScript.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "keywords": [
+    "express",
+    "mongodb",
+    "mongoose",
+    "task-manager"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.13.2"
+  }
+}
