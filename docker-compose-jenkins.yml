@@ -1,0 +1,27 @@
+services:
+  app-jenkins:
+    image: node:18
+    container_name: task-manager-jenkins-app
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "3001:3000"
+    environment:
+      MONGODB_URI: mongodb://mongo-jenkins:27017/tasksdb
+    command: sh -c "npm install && node app.js"
+    depends_on:
+      - mongo-jenkins
+    restart: unless-stopped
+
+  mongo-jenkins:
+    image: mongo:7
+    container_name: task-manager-jenkins-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-jenkins-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo-jenkins-data:

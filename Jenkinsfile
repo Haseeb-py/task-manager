@@ -1,59 +1,52 @@
-def runCommand(script, String unixCommand, String windowsCommand) {
-  if (script.isUnix()) {
-    script.sh unixCommand
-  } else {
-    script.bat windowsCommand
-  }
-}
-
 pipeline {
-  agent any
+    agent any
 
-  options {
-    timestamps()
-  }
-
-  environment {
-    APP_IMAGE = 'task-manager-app'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    options {
+        timestamps()
     }
 
-    stage('Install Dependencies') {
-      steps {
-        script {
-          runCommand(this, 'npm install', 'npm install')
+    environment {
+        APP_IMAGE = 'task-manager-app'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage('Verify Source') {
-      steps {
-        script {
-          runCommand(this, 'node --check app.js', 'node --check app.js')
-          runCommand(this, 'node --check models/Task.js', 'node --check models\\Task.js')
-          runCommand(this, 'node --check models/User.js', 'node --check models\\User.js')
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
         }
-      }
-    }
 
-    stage('Build Docker Image') {
-      steps {
-        script {
-          runCommand(this, 'docker build -t ${APP_IMAGE}:${BUILD_NUMBER} .', 'docker build -t %APP_IMAGE%:%BUILD_NUMBER% .')
+        stage('Verify Source') {
+            steps {
+                sh 'node --check app.js'
+                sh 'node --check models/Task.js'
+                sh 'node --check models/User.js'
+            }
         }
-      }
-    }
-  }
 
-  post {
-    always {
-      cleanWs()
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t ${APP_IMAGE}:${BUILD_NUMBER} .'
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                sh 'docker-compose -f docker-compose-jenkins.yml down || true'
+                sh 'docker-compose -f docker-compose-jenkins.yml up -d'
+            }
+        }
     }
-  }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
