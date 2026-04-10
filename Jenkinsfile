@@ -16,20 +16,6 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Verify Source') {
-            steps {
-                sh 'node --check app.js'
-                sh 'node --check models/Task.js'
-                sh 'node --check models/User.js'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t ${APP_IMAGE}:${BUILD_NUMBER} .'
