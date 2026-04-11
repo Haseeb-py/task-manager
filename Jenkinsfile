@@ -33,11 +33,8 @@ pipeline {
                         --name task-manager-jenkins-app \
                         --network jenkins-net \
                         -p 3001:3000 \
-                        -v $(pwd):/app \
-                        -w /app \
                         -e MONGODB_URI=mongodb://task-manager-jenkins-mongo:27017/tasksdb \
-                        node:18-alpine \
-                        sh -c "npm install && node app.js"
+                        task-manager-app:latest
                 '''
             }
         }
