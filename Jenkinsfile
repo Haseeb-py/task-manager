@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-    options {
-        timestamps()
-    }
-
-    environment {
-        APP_IMAGE = 'task-manager-app'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -18,14 +10,35 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${APP_IMAGE}:${BUILD_NUMBER} .'
+                sh 'docker build -t task-manager-app:latest .'
             }
         }
 
-        stage('Deploy with Docker Compose') {
+        stage('Deploy') {
             steps {
-                sh 'docker-compose -f docker-compose-jenkins.yml down || true'
-                sh 'docker-compose -f docker-compose-jenkins.yml up -d'
+                sh '''
+                    docker stop task-manager-jenkins-app || true
+                    docker rm task-manager-jenkins-app || true
+                    docker stop task-manager-jenkins-mongo || true
+                    docker rm task-manager-jenkins-mongo || true
+                    docker network create jenkins-net || true
+
+                    docker run -d \
+                        --name task-manager-jenkins-mongo \
+                        --network jenkins-net \
+                        -v mongo-jenkins-data:/data/db \
+                        mongo:7
+
+                    docker run -d \
+                        --name task-manager-jenkins-app \
+                        --network jenkins-net \
+                        -p 3001:3000 \
+                        -v $(pwd):/app \
+                        -w /app \
+                        -e MONGODB_URI=mongodb://task-manager-jenkins-mongo:27017/tasksdb \
+                        node:18-alpine \
+                        sh -c "npm install && node app.js"
+                '''
             }
         }
     }
